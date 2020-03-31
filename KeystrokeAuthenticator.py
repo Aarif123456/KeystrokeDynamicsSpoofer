@@ -5,7 +5,7 @@
 # Awesome guide - https://appliedmachinelearning.blog/2017/07/26/user-verification-based-on-keystroke-dynamics-python-code/ 
 
 # imports
-from numpy import ndarray
+from numpy import ndarray #, argmin, argmax
 from scipy.optimize import brentq
 from scipy.interpolate import interp1d
 from sklearn.metrics import roc_curve
@@ -36,6 +36,20 @@ class KeystrokeAuthenticator(ABC):
         thresh = interp1d(fpr, thresholds)(eer)
         return (eer, thresh)
 
+    # def evaluateEER(user_scores, imposter_scores):
+    #     labels = [0]*len(user_scores) + [1]*len(imposter_scores)
+    #     fpr, tpr, thresholds = roc_curve(labels, user_scores + imposter_scores)
+    #     missrates = 1 - tpr
+    #     farates = fpr
+
+    #     dists = missrates - farates
+    #     idx1 = argmin(dists[dists >= 0])
+    #     idx2 = argmax(dists[dists < 0])
+    #     x = [missrates[idx1], farates[idx1]]
+    #     y = [missrates[idx2], farates[idx2]]
+    #     a = ( x[0] - x[1] ) / ( y[1] - x[1] - y[0] + x[0] )
+    #     eer = x[0] + a * ( y[0] - x[0] )
+    #     return (eer, thresholds )
     '''  ** NEEDS TO BE TESTED **  
     # calculate from frp and tpr zero miss false positive rate
     def evaluateZMFPR(fpr : int, tpr : int) -> int: 
@@ -90,14 +104,7 @@ class KeystrokeAuthenticator(ABC):
 
 
 
-
-# def EuclideanNormed():
-
-# def Manhattan():
-
 # def ManhattanFilter():
-
-# def ManhattanScaled():
 
 # def Mahalanobis():
 

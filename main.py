@@ -6,7 +6,7 @@
 # import pandas as pd
 import csv
 from User import User
-from Euclidean import Euclidean
+from MeanBased import Euclidean, Manhattan, EuclideanNormed, ManhattanScaled
 from Spoofer import KeystrokeSpoofer
 class KeystrokeDynamicAttacker:
     def __init__(self, filePath : str):
@@ -16,6 +16,9 @@ class KeystrokeDynamicAttacker:
     def createUsers(filePath : str) -> dict:
         users = dict()
         skipColumn = {"subject", "sessionIndex", "rep"}
+        # keepColumn = {"H.period", "UD.period.t", "H.t", "UD.t.i", "H.i", "UD.i.e",
+        #  "H.e", "UD.e.five", "H.five", "UD.five.Shift.r", "H.Shift.r","UD.Shift.r.o", "H.o",
+        #    "UD.o.a", "H.a", "UD.a.n", "H.n", "UD.n.l", "H.l", "UD.l.Return", "H.Return"}
         with open(filePath, newline='') as csvfile:
             keyStrokeData = csv.DictReader(csvfile)
             # read through file
@@ -27,7 +30,7 @@ class KeystrokeDynamicAttacker:
                     users[userID] = User()
                 keystroke = []
                 for col in row:
-                    if col not in skipColumn:
+                    if col not in skipColumn: # in keepColumn:
                         # print(col, ":", row[col])
                         keystroke.append((float)(row[col]))
                 users[userID].addKeyStroke(keystroke)
@@ -39,7 +42,7 @@ class KeystrokeDynamicAttacker:
 
         # keyStrokeData = pd.read_csv(filePath)
         # Test with down-to down column gone and see how it affect the accuracy  
-        # keepColumns = ["subject", "sessionIndex", "rep", "H.period", "UD.period.t", "H.t", "UD.t.i", "H.i", "UD.i.e", "H.e", "UD.e.five", "H.five", "UD.five.Shift.r", "H.Shift.r", "UD.Shift.r.o", "H.o", "UD.o.a", "H.a", "UD.a.n", "H.n", "UD.n.l", "H.l", "UD.l.Return", "H.Return"]
+        
         #  keyStrokeData = pd.read_csv(filePath,  usecols = keepColumns )
 
         # userIds = keyStrokeData["subject"].unique()
@@ -58,13 +61,29 @@ class KeystrokeDynamicAttacker:
         return imposterData
 
     def checkUserCategory(self, userID : str, functionName : str, population : int):
-        if userID not in self.users:
+        detectors = {
+        "Euclidean" : Euclidean(),
+        "Euclidean normed" : EuclideanNormed(),
+        "Manhattan" : Manhattan(),
+        "Manhattan scaled" : ManhattanScaled()
+        # "Manhattan filtered" : ManhattanFilter(),
+        # "Mahalanobis" : Mahalanobis(),
+        # "Mahalanobis normed" : MahalanobisNormed(),
+        # "Nearest neighbor Mahalanobis" : NearestNeighborMahalanobis(),
+        # "Neural network" : NeuralNetwork(),
+        # "Neural network auto" : NeuralNetworkAuto(),
+        # "Fuzzy logic" : FuzzyLogic(),
+        # "Outlier count z-score" : OutlierCountZScore(),
+        # "SVM one class" : SVMOneClass(),
+        # "k-Means" : kMeans()
+        }
+        user = self.users.get(userID, None)
+        detector = detectors.get(functionName, None)
+        if user == None:
             raise Exception("ERROR: We don't have a user with that id")
-        if functionName == "Euclidean":
-            detector = Euclidean()
-        else:
-             raise Exception("ERROR: Invalid detection method")
-        user = self.users[userID]
+        if detector == None:
+            raise Exception("ERROR: Invalid detection method")
+        
         imposterData = self.getImposterData(user)
         detector.detect(user.getTrainingVector(), user.getUserTestData(), imposterData)
         ks = KeystrokeSpoofer(user.getNumFeature(), population , detector)
@@ -73,22 +92,4 @@ class KeystrokeDynamicAttacker:
 
 if __name__ == '__main__':
     kda = KeystrokeDynamicAttacker("Resources/DSL-StrongPasswordData.csv")
-    kda.checkUserCategory("s002", "Euclidean", 30)
-
-'''
- detector = {"Euclidean" : Euclidean(),
-                        "EuclideanNormed" : EuclideanNormed(),
-                        "Manhattan" : Manhattan(),
-                        "ManhattanFilter" : ManhattanFilter(),
-                        "ManhattanScaled" : ManhattanScaled(),
-                        "Mahalanobis" : Mahalanobis(),
-                        "MahalanobisNormed" : MahalanobisNormed(),
-                        "NearestNeighborMahalanobis" : NearestNeighborMahalanobis(),
-                        "NeuralNetwork" : NeuralNetwork(),
-                        "NeuralNetworkAuto" : NeuralNetworkAuto(),
-                        "FuzzyLogic" : FuzzyLogic(),
-                        "OutlierCountZScore" : OutlierCountZScore(),
-                        "SVMOneClass" : SVMOneClass(),
-                        "kMeans" : kMeans()
-        }
-        '''
+    kda.checkUserCategory("s003", "Manhattan scaled", 500)

@@ -8,6 +8,8 @@ import csv
 from User import User
 from MeanBased import Euclidean, Manhattan, EuclideanNormed, ManhattanScaled
 from Spoofer import KeystrokeSpoofer
+from statistics import stdev ,mean
+
 class KeystrokeDynamicAttacker:
     def __init__(self, filePath : str):
         self.users = KeystrokeDynamicAttacker.createUsers(filePath)
@@ -60,7 +62,7 @@ class KeystrokeDynamicAttacker:
             imposterData += u.getStrokes()
         return imposterData
 
-    def checkUserCategory(self, userID : str, functionName : str, population : int):
+    def getAverageSpoofTries(self, userID : str, functionName : str, population : int):
         detectors = {
         "Euclidean" : Euclidean(),
         "Euclidean normed" : EuclideanNormed(),
@@ -88,8 +90,25 @@ class KeystrokeDynamicAttacker:
         detector.detect(user.getTrainingVector(), user.getUserTestData(), imposterData)
         ks = KeystrokeSpoofer(user.getNumFeature(), population , detector)
         ks.createSpoof()
-        print(user.getStrokes(1))
+        # avg =0
+        # for i in range(10):
+            # avg +=ks.createSpoof()
+        # avg /= 10
+        # return avg
+        
+
+    def classifyAllUsers(self, functionName : str,  population : int):
+        userAvgSpoofTries = []
+        userIDs = self.users.keys()
+        for userID in userIDs:
+            print("Running spoofer for user " +userID)
+            userAvgSpoofTries.append(self.getAverageSpoofTries(userID, functionName, population))
+        # avg = mean(userAvgSpoofTries)
+        # sd = stdev(userAvgSpoofTries)
+        # for i in range(len(userIDs)):
+        #     if 
+
 
 if __name__ == '__main__':
     kda = KeystrokeDynamicAttacker("Resources/DSL-StrongPasswordData.csv")
-    kda.checkUserCategory("s003", "Manhattan scaled", 500)
+    kda.classifyAllUsers("Euclidean", 500)

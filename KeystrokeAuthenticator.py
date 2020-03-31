@@ -93,10 +93,7 @@ class KeystrokeAuthenticator(ABC):
         # ***** NEED TO IMPLEMENT LATER **********
         # return KeystrokeAuthenticator.evaluateZMFPR(realUserDistance, fakeUserDistance)
 
-    def passed(self, score : float) -> bool:
-        if(score < self.threshold):
-            return True
-        return False
+    
 
 
 

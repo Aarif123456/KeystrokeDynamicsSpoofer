@@ -23,8 +23,9 @@ class Keystroke:
         return self.fitness
 
     # handle the random  mutation that occur 
-    def mutate(self, kidVector : list) -> list: # - the closer we are the less we want to change 
-        maxMutation = (self.fitness / len(self.keyStroke))/4
+    def mutate(self, kidVector : list) -> list: 
+        # - the closer we are the less we want to change so we get inverse fitness score and multiply by max change in one feature
+        maxMutation =(1-self.fitness)* (26 / len(self.keyStroke))
         for i in range (len(kidVector)):
             if random.random()>0.75: # 25 percent chance to add to key
                 kidVector[i] += random.random() * maxMutation
@@ -70,7 +71,7 @@ class KeystrokeSpoofer:
 
     @staticmethod
     def sortKeyStroke(possibleKeyStroke : list):
-        possibleKeyStroke.sort(key=lambda Keystroke : Keystroke.getFitness())
+        possibleKeyStroke.sort(key=lambda Keystroke : -Keystroke.getFitness())
 
     def getParents(self, possibleKeyStroke : list):
         average = mean([ps.fitness for ps in possibleKeyStroke]).item()
@@ -100,13 +101,14 @@ class KeystrokeSpoofer:
             children.append(Keystroke(kidVector, self.ka.evaluate(kidVector)))
         return children
 
-    def createSpoof(self):
+    def createSpoof(self) -> int:
         #  GA function 
         # 1. Create initial population
         possibleKeyStroke = self.createInitialPopulation()
-        minScore = (possibleKeyStroke[0].getFitness()) # once sorted we can easily get the most fit function
-        print("Initial best guess score ", minScore)
-        while minScore > self.ka.passed(minScore): # stop condition : when best guess is less then threshold
+        maxScore = (possibleKeyStroke[0].getFitness()) # once sorted we can easily get the most fit function
+        tries=0
+        print("Initial best guess score ", maxScore)
+        while maxScore < 0.85: # stop condition : when best guess is less then threshold
             # Selection of the best-fit individuals for next generation
             parents = self.getParents(possibleKeyStroke)
             # Generate new child by crossover and mutation operations and evaluate fitness
@@ -116,11 +118,13 @@ class KeystrokeSpoofer:
             possibleKeyStroke = children +parents 
             KeystrokeSpoofer.sortKeyStroke(possibleKeyStroke) # sort the list based on their fit
             possibleKeyStroke = possibleKeyStroke[:self.population]
-            minScore = possibleKeyStroke[0].getFitness() # once sorted we can easily get the most fit function
-            print(possibleKeyStroke[0].getKeyStroke())
-            print("Current best guess score ", minScore)
+            maxScore = possibleKeyStroke[0].getFitness() # once sorted we can easily get the most fit function
+            tries += 1
+            # print(possibleKeyStroke[0].getKeyStroke())
+            print("Current best guess score ", maxScore)
         print("Successfully spoofed keystroke ")
         print("best keystroke is ", possibleKeyStroke[0].getKeyStroke())
+        return tries
 
         
 

@@ -21,7 +21,10 @@ class MeanBased(KeystrokeAuthenticator):
                 summation += userVector[i]
             self.meanVector[i] = (summation/len(userTestVectors))
         # print("mean" ,self.meanVector)
-
+    
+    # convert distance into a measure of similarity
+    def distanceToSimilarity(distance : float) -> float:
+        return (1/(1+distance))
 # implements detector based on squared Euclidean distance        
 class Euclidean(MeanBased):
     def evaluate(self, testVector : ndarray) -> float:
@@ -33,7 +36,7 @@ class Euclidean(MeanBased):
         for i in range(len(self.meanVector)):
             d = self.meanVector[i] - testVector[i]
             dist += pow(d, 2) # square the distance and add it
-        return dist.item()
+        return MeanBased.distanceToSimilarity(dist.item())
 
 
 class Manhattan(MeanBased):
@@ -45,7 +48,7 @@ class Manhattan(MeanBased):
         dist = 0
         for i in range(len(self.meanVector)):
             dist += abs(self.meanVector[i] - testVector[i])
-        return dist.item()
+        return MeanBased.distanceToSimilarity(dist.item())
 
 
 # uses euclidean distance but normalizes it using the magnitude of the two vectors:
@@ -71,7 +74,7 @@ class EuclideanNormed(MeanBased):
         for i in range(len(self.meanVector)):
             d = self.meanVector[i] - testVector[i]
             dist += (pow(d, 2)/(self.meanMagnitude*testMagnitude)) # get euclidean distance then normalize it
-        return dist.item()
+        return MeanBased.distanceToSimilarity(dist.item())
 
 
 class ManhattanScaled(MeanBased):
@@ -93,4 +96,4 @@ class ManhattanScaled(MeanBased):
         dist = 0
         for i in range(len(self.meanVector)):
             dist += (abs(self.meanVector[i] - testVector[i])/self.absoluteDeviation[i])
-        return dist.item()
+        return MeanBased.distanceToSimilarity(dist.item())

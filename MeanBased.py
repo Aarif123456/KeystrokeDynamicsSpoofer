@@ -20,11 +20,11 @@ class MeanBased(KeystrokeAuthenticator):
             for userVector in userTestVectors: 
                 summation += userVector[i]
             self.meanVector[i] = (summation/len(userTestVectors))
-        # print("mean" ,self.meanVector)
-    
+
     # convert distance into a measure of similarity
     def distanceToSimilarity(distance : float) -> float:
         return (1/(1+distance))
+        
 # implements detector based on squared Euclidean distance        
 class Euclidean(MeanBased):
     def evaluate(self, testVector : ndarray) -> float:

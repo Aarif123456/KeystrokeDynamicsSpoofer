@@ -121,7 +121,7 @@ class KeystrokeSpoofer:
             maxScore = possibleKeyStroke[0].getFitness() # once sorted we can easily get the most fit function
             tries += 1
             # print(possibleKeyStroke[0].getKeyStroke())
-            print("Current best guess score ", maxScore)
+            # print("Current best guess score ", maxScore)
         print("Successfully spoofed keystroke ")
         print("best keystroke is ", possibleKeyStroke[0].getKeyStroke())
         return tries

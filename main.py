@@ -6,9 +6,10 @@
 # import pandas as pd
 import csv
 from User import User
+from KeystrokeAuthenticator import KeystrokeAuthenticator
 from MeanBased import Euclidean, Manhattan, EuclideanNormed, ManhattanScaled
 from Spoofer import KeystrokeSpoofer
-from statistics import stdev ,mean
+from Classifier import Classifier
 
 class KeystrokeDynamicAttacker:
     def __init__(self, filePath : str):
@@ -39,18 +40,6 @@ class KeystrokeDynamicAttacker:
         for user in users.values():
             if not user.verifyAllKeyRead():
                 raise Exception("We have read in" ,  len(self.keyStrokes) , "for this user")
-
-
-
-        # keyStrokeData = pd.read_csv(filePath)
-        # Test with down-to down column gone and see how it affect the accuracy  
-        
-        #  keyStrokeData = pd.read_csv(filePath,  usecols = keepColumns )
-
-        # userIds = keyStrokeData["subject"].unique()
-        # for userID in userIds:
-        #     userKeyStroke = keyStrokeData.loc[keyStrokeData.subject == userID, "H.period":"H.Return"]
-        #     users[userID] = User(userKeyStroke)
         return users
     
     # get impostor data by getting the first 5 strokes of every user not counting the target user
@@ -62,7 +51,7 @@ class KeystrokeDynamicAttacker:
             imposterData += u.getStrokes()
         return imposterData
 
-    def getAverageSpoofTries(self, userID : str, functionName : str, population : int):
+    def getDetector(self, functionName: str) -> KeystrokeAuthenticator:
         detectors = {
         "Euclidean" : Euclidean(),
         "Euclidean normed" : EuclideanNormed(),
@@ -79,36 +68,26 @@ class KeystrokeDynamicAttacker:
         # "SVM one class" : SVMOneClass(),
         # "k-Means" : kMeans()
         }
+        return detectors.get(functionName, None)
+
+    def spoofUser(self, userID : str, functionName : str, population : int):
         user = self.users.get(userID, None)
-        detector = detectors.get(functionName, None)
+        detector = self.getDetector(functionName)
         if user == None:
             raise Exception("ERROR: We don't have a user with that id")
         if detector == None:
             raise Exception("ERROR: Invalid detection method")
         
-        imposterData = self.getImposterData(user)
-        detector.detect(user.getTrainingVector(), user.getUserTestData(), imposterData)
+        # imposterData = self.getImposterData(user) #  user.getUserTestData(), imposterData
+        detector.trainModel(user.getTrainingVector())
         ks = KeystrokeSpoofer(user.getNumFeature(), population , detector)
         ks.createSpoof()
-        # avg =0
-        # for i in range(10):
-            # avg +=ks.createSpoof()
-        # avg /= 10
-        # return avg
         
-
-    def classifyAllUsers(self, functionName : str,  population : int):
-        userAvgSpoofTries = []
-        userIDs = self.users.keys()
-        for userID in userIDs:
-            print("Running spoofer for user " +userID)
-            userAvgSpoofTries.append(self.getAverageSpoofTries(userID, functionName, population))
-        # avg = mean(userAvgSpoofTries)
-        # sd = stdev(userAvgSpoofTries)
-        # for i in range(len(userIDs)):
-        #     if 
-
+    def classifyUsers(self, functionName : str):
+        detector = self.getDetector(functionName)
+        classifier = Classifier(self.users, detector)
+        classifier.classifyUser()
 
 if __name__ == '__main__':
     kda = KeystrokeDynamicAttacker("Resources/DSL-StrongPasswordData.csv")
-    kda.classifyAllUsers("Euclidean", 500)
+    kda.classifyUsers("Euclidean normed")

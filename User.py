@@ -25,9 +25,9 @@ class User():
     def getUserTestData(self) -> list:
     	return self.keyStrokes[200:]
 
-    # return how many features there are
-    def getNumFeature(self) -> int:
-        return len(self.keyStrokes[0])
+    # # return how many features there are
+    # def getNumFeature(self) -> int:
+    #     return len(self.keyStrokes[0])
 
     # verify all the keystroke were read
     def verifyAllKeyRead(self) -> bool:

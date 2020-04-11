@@ -47,8 +47,8 @@ class Keystroke:
 
 
 class KeystrokeSpoofer:
-    def __init__(self, numFeature : int,  population : int, ka : KeystrokeAuthenticator):
-        self.numFeature = numFeature
+    def __init__(self, population : int, ka : KeystrokeAuthenticator):
+        self.numFeature = ka.getNumFeature()
         self.population = population
         self.ka = ka
 
@@ -76,18 +76,25 @@ class KeystrokeSpoofer:
     def getParents(self, possibleKeyStroke : list):
         average = mean([ps.fitness for ps in possibleKeyStroke]).item()
         standardDeviation = std([ps.fitness for ps in possibleKeyStroke]).item()
-        if standardDeviation == 0:
-            return possibleKeyStroke
         parents = []
-
+        while standardDeviation < 0.0000000001:
+            # print("adding random people", standardDeviation)
+            for i in range(round(self.population*.20)):
+                ksv = self.createSpoofVector()
+                keyStroke = Keystroke(ksv, self.ka.evaluate( ksv))
+                parents.append(keyStroke) # We want to ensure this next generation is selected into the next generation
+                possibleKeyStroke.append(keyStroke) # we also want to make sure the addition of these new keystroke is enough to create some variability
+            average = mean([ps.fitness for ps in possibleKeyStroke]).item()
+            standardDeviation = std([ps.fitness for ps in possibleKeyStroke]).item()
+        
         for p in possibleKeyStroke: # a parents will be selected more depending on how close they are to the target vector
             f = p.getFitness()
-            timesSelected = -round((f - average) / standardDeviation) # basically use z-score to calculate times selected
+            timesSelected = round((f - average) / standardDeviation) # basically use z-score to calculate times selected
             for i in range(timesSelected):
                 parents.append(p)
-
+        # KeystrokeSpoofer.sortKeyStroke(parents)
         while(len(parents)>self.population):
-            parents.pop(-1)
+            parents.pop(0)
         while(len(parents)<self.population):
             parents.append(possibleKeyStroke[random.randint(0,len(possibleKeyStroke)-1)])
         return parents
@@ -121,7 +128,7 @@ class KeystrokeSpoofer:
             maxScore = possibleKeyStroke[0].getFitness() # once sorted we can easily get the most fit function
             tries += 1
             # print(possibleKeyStroke[0].getKeyStroke())
-            # print("Current best guess score ", maxScore)
+            print("Current best guess score ", maxScore)
         print("Successfully spoofed keystroke ")
         print("best keystroke is ", possibleKeyStroke[0].getKeyStroke())
         return tries

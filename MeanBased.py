@@ -20,7 +20,10 @@ class MeanBased(KeystrokeAuthenticator):
             for userVector in userTestVectors: 
                 summation += userVector[i]
             self.meanVector[i] = (summation/len(userTestVectors))
-
+    def getNumFeature(self) -> int:
+        if self.meanVector is None:
+            raise Exception("Tried getting number of features from untrained model")
+        return len(self.meanVector)
     # convert distance into a measure of similarity
     def distanceToSimilarity(distance : float) -> float:
         return (1/(1+distance))

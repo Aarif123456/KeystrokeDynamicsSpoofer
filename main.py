@@ -80,7 +80,7 @@ class KeystrokeDynamicAttacker:
         
         # imposterData = self.getImposterData(user) #  user.getUserTestData(), imposterData
         detector.trainModel(user.getTrainingVector())
-        ks = KeystrokeSpoofer(user.getNumFeature(), population , detector)
+        ks = KeystrokeSpoofer(population , detector)
         ks.createSpoof()
         
     def classifyUsers(self, functionName : str):
@@ -90,4 +90,5 @@ class KeystrokeDynamicAttacker:
 
 if __name__ == '__main__':
     kda = KeystrokeDynamicAttacker("Resources/DSL-StrongPasswordData.csv")
-    kda.classifyUsers("Euclidean normed")
+    # kda.classifyUsers("Euclidean normed")
+    kda.spoofUser("s033", "Manhattan", 30)

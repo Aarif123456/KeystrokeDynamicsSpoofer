@@ -22,6 +22,10 @@ class KeystrokeAuthenticator(ABC):
     def evaluate(self, testVector : ndarray) -> int:
         raise Exception("Tried to evaluate from abstract class!")
         return -1  
+    @abstractmethod
+    def getNumFeature(self) -> int:
+        raise Exception("Tried getting vector length from base authenticator class!")
+        return -1
        
 
     # # ** from https://yangcha.github.io/EER-ROC/ ** 

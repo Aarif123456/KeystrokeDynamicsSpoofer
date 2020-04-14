@@ -3,13 +3,15 @@
 # Keystroke dynamics user classifier - trying to classify users based on the difference of their authentication
 from KeystrokeAuthenticator import KeystrokeAuthenticator
 from statistics import stdev, mean
+from numpy import percentile
 # from pprint import pprint
 
 class Classifier:
-    def __init__(self, users: dict, userModel: KeystrokeAuthenticator):
+    def __init__(self, users: dict, userModel: KeystrokeAuthenticator, comparative = False):
         self.users = users
         self.userModel = userModel
-
+        # comparative means it determine the threshold based on the given population otherwise it will use a segment user
+        self.comparative = comparative
     @staticmethod
     def findOutlier(scores: list, userIDs: list) -> list:
         avg = mean(scores)
@@ -22,49 +24,64 @@ class Classifier:
         self.buildClassifier()
         userIDs = list(self.users.keys())
         # classify user based on their relative performance
-        # ** ASSUMING ALL DATA IS NORMALLY DISTRIBUTED otherwise we can't use the z-score to determine outliers **
-
         # get sheep from data
-        notSheepScore = [(1 - self.users[userID].getAccuracy) for userID in userIDs]
-        # print("inverseSheepScore")
-        # pprint(notSheepScore)
-        notSheepIDs = set(Classifier.findOutlier(notSheepScore, userIDs))
-        sheepIDs = [userID for userID in userIDs if userID not in notSheepIDs]
+        if self.comparative:
+            sheepScore = [self.users[userID].getAccuracy for userID in userIDs ]
+            sheepThreshold =  percentile(sheepScore,70)
+            print("percentile =", sheepThreshold)
+            # pprint(sheepScore)
+        else:
+            sheepThreshold = 0.8
+        sheepIDs = [userID for userID in userIDs if self.users[userID].getAccuracy >= sheepThreshold]
+       
         if len(sheepIDs) != 0:
             print("The following user are considered to be sheep:", sheepIDs)
         else:
             print("There are no sheep in the data... ")
-
+        
         # determine the lamb from the data
-        lambScores = [self.users[userID].getFalsePositive for userID in userIDs]
-        lambsIDs = Classifier.findOutlier(lambScores, userIDs)
-        # print("lambScores")
-        # pprint(lambScores)
+        if self.comparative:
+            lambScores = [self.users[userID].getFalsePositive for userID in userIDs ]
+            lambThreshold =  percentile(lambScores,90)
+            print("percentile =", lambThreshold)
+            # pprint(lambScores)
+        else:
+            lambThreshold = 0.99
+        lambsIDs = [userID for userID in userIDs if self.users[userID].getFalsePositive > lambThreshold ]
         if len(lambsIDs) != 0:
             print("The following user are considered to be lamb:", lambsIDs)
         else:
             print("There are no lambs in the data... ")
 
         # determine the goat from the data
-        goatScores = [self.users[userID].getFalseNegative for userID in userIDs]
-        goatsIDs = Classifier.findOutlier(goatScores, userIDs)
-        # print("goatScores")
-        # pprint(goatScores)
+        if self.comparative:
+            goatScores = [self.users[userID].getFalseNegative for userID in userIDs ]
+            goatThreshold =  percentile(goatScores,90)
+            print("percentile =", goatThreshold)
+            # pprint(goatScores)
+        else:
+            goatThreshold = 0.99
+        goatsIDs = [userID for userID in userIDs if self.users[userID].getFalseNegative  > goatThreshold]
         if len(goatsIDs) != 0:
             print("The following user are considered to be goat:", goatsIDs)
         else:
             print("There are no goats in the data... ")
 
         # determine the wolf from the data
-        wolfScores = [self.users[userID].getImitations for userID in userIDs]
-        wolvesIDs = Classifier.findOutlier(wolfScores, userIDs)
-        # print("wolfScores")
-        # pprint(wolfScores)
+        if self.comparative:
+            wolfScores = [self.users[userID].getImitations for userID in userIDs ]
+            wolfThreshold =  percentile(wolfScores,90)
+            print("percentile =", wolfThreshold)
+            # pprint(wolfScores)
+        else:
+            wolfThreshold = 0.99
+       
+        wolvesIDs = [userID for userID in userIDs if self.users[userID].getImitations >wolfThreshold]
         if len(wolvesIDs) != 0:
             print("The following user are considered to be wolf:", wolvesIDs)
         else:
             print("There are no wolves in the data... ")
-        return (len(sheepIDs), len(lambsIDs), len(goatsIDs), len(wolvesIDs))
+        return len(sheepIDs), len(lambsIDs), len(goatsIDs), len(wolvesIDs)
 
     # get the information needed to classify the users
     def buildClassifier(self):
@@ -104,14 +121,3 @@ class Classifier:
                 else:
                     user.accept(False)  # store true match
                     impostor.imitate()  # store the
-
-# Things to look at if our data wasn't normally distributed
-# - Shapiro-Wilk test p-value above 0.05 - kurtosis z-score should between -1.96-1.96
-# def t_test(sample, mu):
-#     mean = np.mean(sample)
-#     var = np.var(sample, ddof = 1) ###
-#     sem = (var / len(sample)) ** .5
-#     t = abs(mu - mean)/sem
-#     df = len(sample) - 1
-#     p = 2*(1-scs.t.cdf(t, df)) ###
-# return (t, p)

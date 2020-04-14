@@ -1,10 +1,7 @@
 # Abdullah Arif
-# Program created to identify use based on their keystroke 
-# reference
-# 14 algorithms based on - https://www.cs.cmu.edu/~maxion/pubs/KillourhyMaxion09.pdf
-# Awesome guide - https://appliedmachinelearning.blog/2017/07/26/user-verification-based-on-keystroke-dynamics-python-code/ 
+# Program created to identify use based on their keystroke
 
-# imports
+# imports 
 from numpy import ndarray
 from abc import ABC, abstractmethod  # Make class abstract
 
@@ -14,7 +11,7 @@ class KeystrokeAuthenticator(ABC):
         self.threshold = -1
 
     @abstractmethod
-    def trainModel(self, userVector: ndarray):
+    def trainModel(self, userVectors: list):
         raise Exception("Tried to train abstract model!")
 
     @abstractmethod

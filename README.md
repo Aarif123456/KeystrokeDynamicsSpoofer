@@ -17,3 +17,8 @@ Classifier - classify users depending on their behavior
 - goat - their behavior vary to the point where the system has a hard time recognizing them - they tend to get rejected by their own model
 - lamb - they seem to be users that are easy to mimic
 - wolf - these people have an easier time pretending to be other users
+
+
+# reference
+# 14 algorithms based on - https://www.cs.cmu.edu/~maxion/pubs/KillourhyMaxion09.pdf
+# Awesome guide -# https://appliedmachinelearning.blog/2017/07/26/user-verification-based-on-keystroke-dynamics-python-code/

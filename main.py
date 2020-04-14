@@ -9,6 +9,7 @@ from KeystrokeAuthenticator import KeystrokeAuthenticator
 from MeanBased import Euclidean, Manhattan, EuclideanNormed, ManhattanScaled
 from Spoofer import KeystrokeSpoofer
 from Classifier import Classifier
+from numpy import asarray
 
 
 class KeystrokeDynamicAttacker:
@@ -36,7 +37,7 @@ class KeystrokeDynamicAttacker:
                     if col not in skipColumn:  # in keepColumn:
                         # print(col, ":", row[col])
                         keystroke.append(float(row[col]))
-                users[userID].addKeyStroke(keystroke)
+                users[userID].addKeyStroke(asarray(keystroke, dtype=float))
         for user in users.values():
             if user.getNumKeystroke != 400:
                 raise Exception("We have read in", user.getNumKeystroke, "for this user")
@@ -74,7 +75,7 @@ class KeystrokeDynamicAttacker:
             raise ValueError("ERROR: Invalid detection method")
         return det
 
-    def getUser(self, userID : str) -> User:
+    def getUser(self, userID: str) -> User:
         user = self.users.get(userID, None)
         if user is None:
             raise ValueError("ERROR: We don't have a user with that id")
@@ -90,11 +91,11 @@ class KeystrokeDynamicAttacker:
 
     def classifyUsers(self, functionName: str):
         detector = KeystrokeDynamicAttacker.getDetector(functionName)
-        classifier = Classifier(self.users, detector)
+        classifier = Classifier(self.users, detector,True)
         classifier.classifyUser()
 
 
 if __name__ == '__main__':
     kda = KeystrokeDynamicAttacker("Resources/DSL-StrongPasswordData.csv")
-    # kda.classifyUsers("Euclidean normed")
-    kda.spoofUser("s033", "Euclidean", 30)
+    kda.classifyUsers("Euclidean normed")
+    # kda.spoofUser("s033", "Euclidean", 30)

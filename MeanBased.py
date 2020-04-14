@@ -115,7 +115,7 @@ class ManhattanScaled(MeanBased):
             raise Exception("ERROR: mean vector and test vector are not the same size")
         dist: float_ = float_(0)
         for i in range(len(self.meanVector)):
-            if(self.absoluteDeviation[i] !=0):
+            if self.absoluteDeviation[i] != 0:
                 dist += (abs(self.meanVector[i] - testVector[i]) / self.absoluteDeviation[i])
 
         return MeanBased.distanceToSimilarity(dist.item())

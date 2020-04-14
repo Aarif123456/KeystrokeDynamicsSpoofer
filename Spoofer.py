@@ -2,8 +2,10 @@ from numpy import ndarray, zeros, mean, std
 import random
 from KeystrokeAuthenticator import KeystrokeAuthenticator
 import sys
+
 if not sys.warnoptions:
     import warnings
+
 
 class Keystroke:
     def __init__(self, keyStroke: ndarray, fitness: float):
@@ -47,14 +49,14 @@ class Keystroke:
 
 class KeystrokeSpoofer:
     def __init__(self, population: int, ka: KeystrokeAuthenticator):
-        if isinstance(population, (float)):
-            warnings.warn("WARNING: implicitly converted value of population ",  UserWarning)
+        if isinstance(population, float):
+            warnings.warn("WARNING: implicitly converted value of population ", UserWarning)
             population = round(population)
-        if not isinstance(population, (int)):
+        if not isinstance(population, int):
             raise TypeError("ERROR: Population cannot be read as an int")
-        if population <= 0: 
+        if population <= 0:
             raise ValueError("ERROR: Please enter a positive integer as value for population")
-        if not isinstance(ka, (KeystrokeAuthenticator)):
+        if not isinstance(ka, KeystrokeAuthenticator):
             raise TypeError("ERROR: please use valid detector for spoofing")
         self.numFeature = ka.getNumFeature()
         self.population = population
@@ -90,13 +92,14 @@ class KeystrokeSpoofer:
             for i in range(round(self.population * .20)):
                 ksv = self.createSpoofVector()
                 keyStroke = Keystroke(ksv, self.ka.evaluate(ksv))
-                parents.append(keyStroke)  # We want to ensure this next generation is selected into the next generation
-                possibleKeyStroke.append(
-                    keyStroke)  # we also want to make sure the addition of these new keystroke is enough to create some variability
+                # We want to ensure this next generation is selected into the next generation
+                parents.append(keyStroke)
+                # we also want to make sure the addition of these new keystroke is enough to create some variability
+                possibleKeyStroke.append(keyStroke)
             average = mean([ps.fitness for ps in possibleKeyStroke]).item()
             standardDeviation = std([ps.fitness for ps in possibleKeyStroke]).item()
-
-        for p in possibleKeyStroke:  # a parents will be selected more depending on how close they are to the target vector
+        # a parents will be selected more depending on how close they are to the target vector
+        for p in possibleKeyStroke:
             f = p.getFitness()
             timesSelected = round(
                 (f - average) / standardDeviation)  # basically use z-score to calculate times selected
@@ -118,7 +121,7 @@ class KeystrokeSpoofer:
             children.append(Keystroke(kidVector, self.ka.evaluate(kidVector)))
         return children
 
-    def createSpoof(self) -> int:
+    def createSpoof(self) -> ndarray:
         #  GA function 
         # 1. Create initial population
         possibleKeyStroke = self.createInitialPopulation()
@@ -139,6 +142,6 @@ class KeystrokeSpoofer:
             tries += 1
             # print(possibleKeyStroke[0].getKeyStroke())
             # print("Current best guess score ", maxScore)
-        print("Successfully spoofed keystroke with ", tries ,"tries")
+        print("Successfully spoofed keystroke with ", tries, "tries")
         print("best keystroke is ", possibleKeyStroke[0].getKeyStroke())
         return possibleKeyStroke[0].getKeyStroke()

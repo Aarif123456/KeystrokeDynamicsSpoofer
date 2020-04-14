@@ -1,37 +1,54 @@
+from numpy import ndarray
+import sys
+if not sys.warnoptions:
+    import warnings
 
-class User():
-    def __init__(self):
-        self.keyStrokes = [] # 400 keystrokes per user e.g 8 session * 50 repetition
-        self.resetClassifierValue()
-        # 31 entries for each data entry - 3 per key: Hold, Down-Down and Up-Down
-        # Hold is the time the key was pressed for and Up-Down is the time between letting go of the key and pressing the next key
-        # Down-Down is the time between the time one key was pressed and second key was pressed 
-        # -> So, Hold time + Up-Down time = Down-Down time
+class User:
+    def __init__(self, ks = None):
+        if ks is None:
+            self.keyStrokes = []  # 400 keystrokes per user e.g 8 session * 50 repetition
+        else:
+            self.keyStrokes = ks
+        self.falsePositive = 0
+        self.falseNegative = 0
+        self.truePositive = 0
+        self.trueNegative = 0
+        self.imitation = 0
     
+    
+
     # add in the user keystrokes
-    def addKeyStroke(self, keyStrokes : list):
+    def addKeyStroke(self, keyStrokes: list):
         self.keyStrokes.append(keyStrokes)
 
     # return the firs n keystrokes - by default it is set to 5
     def getStrokes(self, num=5) -> list:
-    	num = min(max(num,0),len(self.keyStrokes))
-    	return self.keyStrokes[0:num]
+        n = min(max(num, 0), len(self.keyStrokes))
+        if (n!=num):
+            warnings.warn("WARNING: Invalid amount of keystrokes requested " + str(num),  UserWarning)
+        if n == 0:
+            warnings.warn("WARNING: returning no keystrokes " ,  UserWarning)
+            return []
+        return self.keyStrokes[0:n]
 
-    # the training vector is a basically the first 200 vector - as opposed to the last 200
+    # the training vector is a basically the first 10 vector 
     def getTrainingVector(self) -> list:
-    	return self.keyStrokes[:200]
+        return self.keyStrokes[:10]
+
+    def setVector(self, keystroke: ndarray,  num=9):
+        n = min(max(num, 0), len(self.keyStrokes))
+        if (n!=num):
+            warnings.warn("WARNING: invalid index " + str(num),  UserWarning)
+        self.keyStrokes[n] = keystroke
 
     # last 200 keystrokes
     def getUserTestData(self) -> list:
-    	return self.keyStrokes[200:]
-
-    # # return how many features there are
-    # def getNumFeature(self) -> int:
-    #     return len(self.keyStrokes[0])
+        return self.keyStrokes[200:]
 
     # verify all the keystroke were read
-    def verifyAllKeyRead(self) -> bool:
-        return len(self.keyStrokes) == 400
+    @property
+    def getNumKeystroke(self) -> int:
+        return len(self.keyStrokes)
 
     # reset the values used to classify the users
     def resetClassifierValue(self):
@@ -42,40 +59,65 @@ class User():
         self.imitation = 0
 
     # handle correct matches
-    def accept(self, true : bool):
+    def accept(self, true: bool):
         if true:
             self.truePositive += 1
         else:
-            self.falsePositive +=1
+            self.falsePositive += 1
 
     # handle rejection
-    def reject(self, true : bool):
+    def reject(self, true: bool):
         if true:
             self.trueNegative += 1
         else:
-            self.falseNegative +=1
+            self.falseNegative += 1
 
     # store successful imitation
     def imitate(self):
-        self.imitation +=1 
+        self.imitation += 1
 
     # sheep have low error rate
+    @property
     def getAccuracy(self) -> float:
-        return (self.truePositive+self.trueNegative)/ (self.truePositive+self.trueNegative+self.falsePositive+self.falseNegative)
-        
-    # used by lambs as they accept imposters
-    def getFalsePositive(self) -> int:
-        return self.falsePositive
-    
+        totalAttempts = self.truePositive + self.trueNegative + self.falsePositive + self.falseNegative
+        if totalAttempts == 0:
+            raise Exception("ERROR: Can't calculate accuracy of model without training it")
+        return (self.truePositive + self.trueNegative-self.falsePositive-self.falseNegative-self.imitation) / totalAttempts
+                    
+
+    # used by lambs as they accept impostors
+    @property
+    def getFalsePositive(self) -> float:
+        totalAttempts = self.truePositive + self.trueNegative + self.falsePositive + self.falseNegative
+        if totalAttempts == 0:
+            raise Exception("ERROR: Can't calculate accuracy of model without training it")
+        return self.falsePositive/totalAttempts
+
     # goats have higher false negative rate
-    def getFalseNegative(self) -> int:
-        return self.falseNegative
+    @property
+    def getFalseNegative(self) -> float:
+        totalAttempts = self.truePositive + self.trueNegative + self.falsePositive + self.falseNegative
+        if totalAttempts == 0:
+            raise Exception("ERROR: Can't calculate accuracy of model without training it")
+        return self.falseNegative/totalAttempts
 
-    def getTruePositive(self) -> int:
-        return self.truePositive
-    
-    def getTrueNegative(self) -> int:
-        return self.trueNegative
+    @property
+    def getTruePositive(self) -> float:
+        totalAttempts = self.truePositive + self.trueNegative + self.falsePositive + self.falseNegative
+        if totalAttempts == 0:
+            raise Exception("ERROR: Can't calculate accuracy of model without training it")
+        return self.truePositive/totalAttempts
 
-    def getImitatation(self) -> int:
-        return self.imitation
+    @property
+    def getTrueNegative(self) -> float:
+        totalAttempts = self.truePositive + self.trueNegative + self.falsePositive + self.falseNegative
+        if totalAttempts == 0:
+            raise Exception("ERROR: Can't calculate accuracy of model without training it")
+        return self.trueNegative/totalAttempts
+
+    @property
+    def getImitations(self) -> float:
+        totalAttempts = self.truePositive + self.trueNegative + self.falsePositive + self.falseNegative
+        if totalAttempts == 0:
+            raise Exception("ERROR: Can't calculate accuracy of model without training it")
+        return self.imitation/totalAttempts
